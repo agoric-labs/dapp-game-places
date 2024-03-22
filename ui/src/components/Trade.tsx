@@ -4,6 +4,11 @@ import scrollIcon from '../assets/scroll.png';
 import istIcon from '../assets/IST.svg';
 import mapIcon from '../assets/map.png';
 import potionIcon from '../assets/potionBlue.png';
+import { usePurse } from '../hooks/usePurse';
+import { AgoricWalletConnection, useAgoric } from '@agoric/react-components';
+import { makeCopyBag } from '@agoric/store';
+import { useContractStore } from '../store/contract';
+import type { Purse } from '../types';
 
 const { entries, values } = Object;
 const sum = (xs: bigint[]) => xs.reduce((acc, next) => acc + next, 0n);
@@ -24,6 +29,42 @@ const parseValue = (numeral: string, purse: Purse): bigint => {
   const { decimalPlaces } = purse.displayInfo;
   const num = Number(numeral) * 10 ** decimalPlaces;
   return BigInt(num);
+};
+
+const makeOffer = (
+  wallet: AgoricWalletConnection,
+  giveValue: bigint,
+  wantChoices: Record<string, bigint>,
+) => {
+  const { instance, brands } = useContractStore.getState();
+  if (!instance) throw Error('no contract instance');
+  if (!(brands && brands.IST && brands.Item))
+    throw Error('brands not available');
+
+  const value = makeCopyBag(entries(wantChoices));
+  const want = { Items: { brand: brands.Item, value } };
+  const give = { Price: { brand: brands.IST, value: giveValue } };
+
+  wallet?.makeOffer(
+    {
+      source: 'contract',
+      instance,
+      publicInvitationMaker: 'makeTradeInvitation',
+    },
+    { give, want },
+    undefined,
+    (update: { status: string; data?: unknown }) => {
+      if (update.status === 'error') {
+        alert(`Offer error: ${update.data}`);
+      }
+      if (update.status === 'accepted') {
+        alert('Offer accepted');
+      }
+      if (update.status === 'refunded') {
+        alert('Offer rejected');
+      }
+    },
+  );
 };
 
 const Item = ({
@@ -62,16 +103,13 @@ const Item = ({
   </div>
 );
 
-type TradeProps = {
-  makeOffer: (giveValue: bigint, wantChoices: Record<string, bigint>) => void;
-  istPurse: Purse;
-  walletConnected: boolean;
-};
-
-// TODO: IST displayInfo is available in vbankAsset or boardAux
-const Trade = ({ makeOffer, istPurse, walletConnected }: TradeProps) => {
+const Trade = () => {
+  const istPurse = usePurse('IST');
+  const { brands, instance } = useContractStore();
   const [giveValue, setGiveValue] = useState(terms.price);
   const [choices, setChoices] = useState<ItemChoices>({ map: 1n, scroll: 2n });
+  const { walletConnection } = useAgoric();
+
   const changeChoice = (ev: FormEvent) => {
     if (!ev.target) return;
     const elt = ev.target as HTMLInputElement;
@@ -120,7 +158,7 @@ const Trade = ({ makeOffer, istPurse, walletConnected }: TradeProps) => {
             }
             label="IST"
             onChange={ev =>
-              setGiveValue(parseValue(ev?.target?.value, istPurse))
+              istPurse && setGiveValue(parseValue(ev?.target?.value, istPurse))
             }
             inputClassName={giveValue >= terms.price ? 'ok' : 'error'}
             inputStep="0.01"
@@ -128,10 +166,14 @@ const Trade = ({ makeOffer, istPurse, walletConnected }: TradeProps) => {
         </div>
       </div>
       <div>
-        {walletConnected && (
-          <button onClick={() => makeOffer(giveValue, choices)}>
+        {walletConnection && brands && instance ? (
+          <button
+            onClick={() => makeOffer(walletConnection, giveValue, choices)}
+          >
             Make an Offer
           </button>
+        ) : (
+          <></>
         )}
       </div>
     </>

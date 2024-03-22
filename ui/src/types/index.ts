@@ -1,8 +1,8 @@
-interface CopyBag<T = string> {
+export interface CopyBag<T = string> {
   payload: Array<[T, bigint]>;
 }
 
-interface Purse {
+export interface Purse {
   brand: unknown;
   brandPetname: string;
   currentAmount: {

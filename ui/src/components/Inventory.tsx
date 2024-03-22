@@ -1,49 +1,53 @@
+import { ConnectWalletButton, useAgoric } from '@agoric/react-components';
 import { stringifyAmountValue } from '@agoric/ui-components';
+import { usePurse } from '../hooks/usePurse';
+import type { CopyBag } from '../types';
 
-type InventoryProps = {
-  address: string;
-  istPurse: Purse;
-  itemsPurse: Purse;
-};
+const Inventory = () => {
+  const istPurse = usePurse('IST');
+  const itemsPurse = usePurse('Item');
+  const { walletConnection } = useAgoric();
 
-const Inventory = ({ address, istPurse, itemsPurse }: InventoryProps) => (
-  <div className="card">
-    <h3>My Wallet</h3>
-    <div>
+  return (
+    <div className="card">
+      <h3>My Wallet</h3>
       <div>
-        <small>
-          <code>{address}</code>
-        </small>
-      </div>
-
-      <div style={{ textAlign: 'left' }}>
-        <div>
-          <b>IST: </b>
-          {stringifyAmountValue(
-            istPurse.currentAmount,
-            istPurse.displayInfo.assetKind,
-            istPurse.displayInfo.decimalPlaces,
-          )}
-        </div>
-        <div>
-          <b>Items:</b>
-          {itemsPurse ? (
-            <ul style={{ marginTop: 0, textAlign: 'left' }}>
-              {(itemsPurse.currentAmount.value as CopyBag).payload.map(
-                ([name, number]) => (
-                  <li key={name}>
-                    {String(number)} {name}
-                  </li>
-                ),
+        <ConnectWalletButton />
+        {walletConnection && (
+          <div style={{ textAlign: 'left' }}>
+            <div>
+              <b>IST: </b>
+              {istPurse ? (
+                stringifyAmountValue(
+                  istPurse.currentAmount,
+                  istPurse.displayInfo.assetKind,
+                  istPurse.displayInfo.decimalPlaces,
+                )
+              ) : (
+                <i>Fetching balance...</i>
               )}
-            </ul>
-          ) : (
-            'None'
-          )}
-        </div>
+            </div>
+            <div>
+              <b>Items: </b>
+              {itemsPurse ? (
+                <ul style={{ marginTop: 0, textAlign: 'left' }}>
+                  {(itemsPurse.currentAmount.value as CopyBag).payload.map(
+                    ([name, number]) => (
+                      <li key={name}>
+                        {String(number)} {name}
+                      </li>
+                    ),
+                  )}
+                </ul>
+              ) : (
+                'None'
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 export { Inventory };
