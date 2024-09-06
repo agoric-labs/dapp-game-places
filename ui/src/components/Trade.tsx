@@ -1,16 +1,21 @@
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { stringifyAmountValue } from '@agoric/ui-components';
 import scrollIcon from '../assets/scroll.png';
 import istIcon from '../assets/IST.svg';
 import mapIcon from '../assets/map.png';
 import potionIcon from '../assets/potionBlue.png';
+import netflixLogo from '../assets/netflix.svg';
+import disneyLogo from '../assets/disney.svg';
+import hboLogo from '../assets/hbomax.svg';
+import primeLogo from '../assets/amazon.svg';
+import { Wallet } from '../App';
+import { subscribeLatest } from '@agoric/notifier';
 
 const { entries, values } = Object;
 const sum = (xs: bigint[]) => xs.reduce((acc, next) => acc + next, 0n);
 
 const terms = {
-  price: 250000n,
-  maxItems: 3n,
+  price: 10000000n,
 };
 const nameToIcon = {
   scroll: scrollIcon,
@@ -24,6 +29,20 @@ const parseValue = (numeral: string, purse: Purse): bigint => {
   const { decimalPlaces } = purse.displayInfo;
   const num = Number(numeral) * 10 ** decimalPlaces;
   return BigInt(num);
+};
+
+const SERVICES = {
+  NETFLIX: 'Netflix',
+  AMAZON: 'Amazon',
+  HBO: 'HboMax',
+  DISNEY: 'Disney',
+};
+
+const serviceNameToIconMap = {
+  [SERVICES.NETFLIX]: netflixLogo,
+  [SERVICES.AMAZON]: primeLogo,
+  [SERVICES.DISNEY]: disneyLogo,
+  [SERVICES.HBO]: hboLogo,
 };
 
 const Item = ({
@@ -62,75 +81,99 @@ const Item = ({
   </div>
 );
 
-type TradeProps = {
-  makeOffer: (giveValue: bigint, wantChoices: Record<string, bigint>) => void;
+type SubscriptionProps = {
+  makeOffer: (giveValue: bigint, wantChoice: string, offerType: string, watchUpdates: Function) => void;
   istPurse: Purse;
   walletConnected: boolean;
 };
 
-// TODO: IST displayInfo is available in vbankAsset or boardAux
-const Trade = ({ makeOffer, istPurse, walletConnected }: TradeProps) => {
-  const [giveValue, setGiveValue] = useState(terms.price);
-  const [choices, setChoices] = useState<ItemChoices>({ map: 1n, scroll: 2n });
-  const changeChoice = (ev: FormEvent) => {
-    if (!ev.target) return;
-    const elt = ev.target as HTMLInputElement;
-    const title = elt.title as ItemName;
-    if (!title) return;
-    const qty = BigInt(elt.value);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { [title]: _old, ...rest }: ItemChoices = choices;
-    const newChoices = qty > 0 ? { ...rest, [title]: qty } : rest;
-    setChoices(newChoices);
-  };
+const watchUpdates = async (wallet: Wallet, offerType: string, serviceType: string) => {
+  const iterator = subscribeLatest(wallet?.walletUpdatesNotifier);
+  let flag = false;
+  for await (const update of iterator) {
+    if (offerType === "VIEW_SUBSCRIPTION" && !flag && update.status.offerArgs.serviceType === serviceType && update.status.offerArgs.offerType === 'VIEW_SUBSCRIPTION') {
+      flag = true;
+      alert(update.status.result);
+  }
+  }
+};
 
+// TODO: IST displayInfo is available in vbankAsset or boardAux
+const Subscribe = ({
+  makeOffer,
+  istPurse,
+  walletConnected,
+}: SubscriptionProps) => {
+  const [choice, setChoice] = useState<string>('');
+  const [selectClass, setSelectClass] = useState<object>({
+    [SERVICES.NETFLIX]: '',
+    [SERVICES.AMAZON]: '',
+    [SERVICES.DISNEY]: '',
+    [SERVICES.HBO]: '',
+  });
+
+  
   return (
     <>
       <div className="trade">
-        <h3>Want: Choose up to 3 items</h3>
+        <h3>Pick a Provider</h3>
         <div className="row-center">
-          {entries(nameToIcon).map(([title, icon]) => (
-            <Item
-              key={title}
-              icon={icon}
-              value={Number(choices[title as ItemName] || 0n)}
-              label={title}
-              onChange={changeChoice}
-              inputClassName={
-                sum(values(choices)) <= terms.maxItems ? 'ok' : 'error'
-              }
-            />
-          ))}
+          <div className="item-col row-center">
+            {Object.entries(SERVICES).map(([_, service]) => {
+              return (
+                <div
+                  key={service}
+                  style={{ padding: '12px', cursor: 'pointer' }}
+                  onClick={() => {
+                    setChoice(service);
+                    setSelectClass({
+                      [SERVICES.NETFLIX]: '',
+                      [SERVICES.AMAZON]: '',
+                      [SERVICES.DISNEY]: '',
+                      [SERVICES.HBO]: '',
+                      [service]: 'selected',
+                    });
+                  }}
+                  // className={selectClass[service]}
+                >
+                  <div
+                    style={{
+                      backgroundColor: 'grey',
+                      borderRadius: '5px',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      paddingBottom: '5px',
+                    }}
+                    className={`${selectClass[service]} item-col`}
+                  >
+                    <img
+                      src={serviceNameToIconMap[service]}
+                      className="service"
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        <div style={{ fontStyle: 'italic' }}>
+          *Subscribe to any service for 10 IST
         </div>
       </div>
-      <div className="trade">
-        <h3>Give: Offer at least 0.25 IST</h3>
-        <div className="row-center">
-          <Item
-            key="IST"
-            coinIcon={istIcon}
-            value={
-              istPurse
-                ? stringifyAmountValue(
-                    { ...istPurse.currentAmount, value: giveValue },
-                    istPurse.displayInfo.assetKind,
-                    istPurse.displayInfo.decimalPlaces,
-                  )
-                : '0.25'
-            }
-            label="IST"
-            onChange={ev =>
-              setGiveValue(parseValue(ev?.target?.value, istPurse))
-            }
-            inputClassName={giveValue >= terms.price ? 'ok' : 'error'}
-            inputStep="0.01"
-          />
-        </div>
-      </div>
+
       <div>
         {walletConnected && (
-          <button onClick={() => makeOffer(giveValue, choices)}>
-            Make an Offer
+          <button onClick={() => {
+            makeOffer(terms.price, choice, "BUY_SUBSCRIPTION", () => {})
+            }}>
+            Subscribe
+          </button>
+        )}
+        {walletConnected && (
+          <button onClick={() => {
+            makeOffer(terms.price, choice, "VIEW_SUBSCRIPTION", watchUpdates)
+            }}>
+            View Subscription
           </button>
         )}
       </div>
@@ -138,4 +181,4 @@ const Trade = ({ makeOffer, istPurse, walletConnected }: TradeProps) => {
   );
 };
 
-export { Trade };
+export { Subscribe };

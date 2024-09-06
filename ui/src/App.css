@@ -30,15 +30,14 @@
   }
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+.selected {
+  outline: 2px solid #007bff;
 }
 
 .card {
   padding: 1em;
 }
+
 
 .read-the-docs {
   color: #888;
@@ -52,6 +51,11 @@
 .coin {
   width: 2em;
   margin: 10px;
+}
+
+.service {
+  height: 48px;
+  width: 48px;
 }
 
 .trade {

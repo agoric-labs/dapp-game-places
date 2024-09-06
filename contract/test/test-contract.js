@@ -5,7 +5,7 @@
 
 /* eslint-disable import/order -- https://github.com/endojs/endo/issues/1235 */
 import { test as anyTest } from './prepare-test-env-ava.js';
-
+import buildZoeManualTimer from '@agoric/zoe/tools/manualTimer.js';
 import { createRequire } from 'module';
 import { E, Far } from '@endo/far';
 import { makePromiseKit } from '@endo/promise-kit';
@@ -26,7 +26,6 @@ const contractPath = myRequire.resolve(`../src/offer-up.contract.js`);
 const test = anyTest;
 
 const UNIT6 = 1_000_000n;
-const CENT = UNIT6 / 100n;
 
 /**
  * Tests assume access to the zoe service and that contracts are bundled.
@@ -63,7 +62,12 @@ test('Start the contract', async t => {
 
   const money = makeIssuerKit('PlayMoney');
   const issuers = { Price: money.issuer };
-  const terms = { tradePrice: AmountMath.make(money.brand, 5n) };
+  const timer = buildZoeManualTimer();
+  const terms = {
+    subscriptionPrice: AmountMath.make(money.brand, 10000000n),
+    timerService: timer,
+  };
+
   t.log('terms:', terms);
 
   /** @type {ERef<Installation<AssetContractFn>>} */
@@ -78,43 +82,62 @@ test('Start the contract', async t => {
  *
  * @param {import('ava').ExecutionContext} t
  * @param {ZoeService} zoe
- * @param {ERef<import('@agoric/zoe/src/zoeService/utils').Instance<AssetContractFn>} instance
+ * @param {ERef<import('@agoric/zoe/src/zoeService/utils').Instance<AssetContractFn>>} instance
  * @param {Purse} purse
- * @param {string[]} choices
  */
-const alice = async (t, zoe, instance, purse, choices = ['map', 'scroll']) => {
+const alice = async (t, zoe, instance, purse) => {
   const publicFacet = E(zoe).getPublicFacet(instance);
   // @ts-expect-error Promise<Instance> seems to work
   const terms = await E(zoe).getTerms(instance);
-  const { issuers, brands, tradePrice } = terms;
+  const { issuers, brands, subscriptionPrice, timerService } = terms;
 
-  const choiceBag = makeCopyBag(choices.map(name => [name, 1n]));
+  const currentTimeRecord = await E(timerService).getCurrentTimestamp();
+  const serviceType = 'Netflix';
+  const choiceBag = makeCopyBag([
+    [{ serviceStarted: currentTimeRecord, serviceType }, 1n],
+  ]);
+
   const proposal = {
-    give: { Price: tradePrice },
+    give: { Price: subscriptionPrice },
     want: { Items: AmountMath.make(brands.Item, choiceBag) },
   };
-  const pmt = await E(purse).withdraw(tradePrice);
+
+  const pmt = await E(purse).withdraw(subscriptionPrice);
   t.log('Alice gives', proposal.give);
-  // #endregion makeProposal
 
   const toTrade = E(publicFacet).makeTradeInvitation();
 
-  const seat = E(zoe).offer(toTrade, proposal, { Price: pmt });
+  const userAddress = 'agoric123456';
+  const seat = E(zoe).offer(
+    toTrade,
+    proposal,
+    { Price: pmt },
+    { userAddress, serviceType },
+  );
   const items = await E(seat).getPayout('Items');
 
   const actual = await E(issuers.Item).getAmountOf(items);
   t.log('Alice payout brand', actual.brand);
   t.log('Alice payout value', actual.value);
   t.deepEqual(actual, proposal.want.Items);
+
+  const actualMovies = [`${serviceType}_Movie_1`, `${serviceType}_Movie_2`];
+  const subscriptionMovies =
+    await E(publicFacet).getSubscriptionResources(userAddress, serviceType);
+
+  t.deepEqual(actualMovies, subscriptionMovies);
 };
 
-test('Alice trades: give some play money, want items', async t => {
+test('Alice trades: give some play money, want subscription', async t => {
   const { zoe, bundle } = t.context;
 
   const money = makeIssuerKit('PlayMoney');
   const issuers = { Price: money.issuer };
-  const terms = { tradePrice: AmountMath.make(money.brand, 5n) };
-
+  const timer = buildZoeManualTimer();
+  const terms = {
+    subscriptionPrice: AmountMath.make(money.brand, 10000000n),
+    timerService: timer,
+  };
   /** @type {ERef<Installation<AssetContractFn>>} */
   const installation = E(zoe).install(bundle);
   const { instance } = await E(zoe).startInstance(installation, issuers, terms);
@@ -122,7 +145,7 @@ test('Alice trades: give some play money, want items', async t => {
   t.is(typeof instance, 'object');
 
   const alicePurse = money.issuer.makeEmptyPurse();
-  const amountOfMoney = AmountMath.make(money.brand, 10n);
+  const amountOfMoney = AmountMath.make(money.brand, 10000000n);
   const moneyPayment = money.mint.mintPayment(amountOfMoney);
   alicePurse.deposit(moneyPayment);
   await alice(t, zoe, instance, alicePurse);
@@ -140,18 +163,19 @@ test('Trade in IST rather than play money', async t => {
     const installation = E(zoe).install(bundle);
     const feeIssuer = await E(zoe).getFeeIssuer();
     const feeBrand = await E(feeIssuer).getBrand();
-    const tradePrice = AmountMath.make(feeBrand, 25n * CENT);
+    const subscriptionPrice = AmountMath.make(feeBrand, 10000000n);
+    const timer = buildZoeManualTimer();
     return E(zoe).startInstance(
       installation,
       { Price: feeIssuer },
-      { tradePrice },
+      { subscriptionPrice, timerService: timer },
     );
   };
 
   const { zoe, bundle, bundleCache, feeMintAccess } = t.context;
   const { instance } = await startContract({ zoe, bundle });
   const { faucet } = makeStableFaucet({ bundleCache, feeMintAccess, zoe });
-  await alice(t, zoe, instance, await faucet(5n * UNIT6));
+  await alice(t, zoe, instance, await faucet(10n * UNIT6));
 });
 
 test('use the code that will go on chain to start the contract', async t => {
@@ -225,5 +249,5 @@ test('use the code that will go on chain to start the contract', async t => {
   // Now that we have the instance, resume testing as above.
   const { feeMintAccess, bundleCache } = t.context;
   const { faucet } = makeStableFaucet({ bundleCache, feeMintAccess, zoe });
-  await alice(t, zoe, instance, await faucet(5n * UNIT6));
+  await alice(t, zoe, instance, await faucet(10n * UNIT6));
 });

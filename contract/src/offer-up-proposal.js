@@ -12,9 +12,6 @@ const BOARD_AUX = 'boardAux';
 
 const marshalData = makeMarshal(_val => Fail`data only`);
 
-const IST_UNIT = 1_000_000n;
-const CENT = IST_UNIT / 100n;
-
 /**
  * Make a storage node for auxilliary data for a value on the board.
  *
@@ -44,7 +41,13 @@ const publishBrandInfo = async (chainStorage, board, brand) => {
 export const startOfferUpContract = async permittedPowers => {
   console.error('startOfferUpContract()...');
   const {
-    consume: { board, chainStorage, startUpgradable, zoe },
+    consume: {
+      board,
+      chainStorage,
+      startUpgradable,
+      zoe,
+      // chainTimerService: chainTimerServiceP,
+    },
     brand: {
       consume: { IST: istBrandP },
       // @ts-expect-error dynamic extension to promise space
@@ -66,8 +69,12 @@ export const startOfferUpContract = async permittedPowers => {
 
   const istIssuer = await istIssuerP;
   const istBrand = await istBrandP;
+  // const timerService = await await chainTimerServiceP;
 
-  const terms = { tradePrice: AmountMath.make(istBrand, 25n * CENT) };
+  const terms = {
+    subscriptionPrice: AmountMath.make(istBrand, 10000000n),
+    // timerService,
+  };
 
   // agoricNames gets updated each time; the promise space only once XXXXXXX
   const installation = await offerUpInstallationP;
@@ -107,6 +114,7 @@ const offerUpManifest = {
       chainStorage: true, // to publish boardAux info for NFT brand
       startUpgradable: true, // to start contract and save adminFacet
       zoe: true, // to get contract terms, including issuer/brand
+      // chainTimerService: true,
     },
     installation: { consume: { offerUp: true } },
     issuer: { consume: { IST: true }, produce: { Item: true } },

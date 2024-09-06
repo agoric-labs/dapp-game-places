@@ -25,7 +25,7 @@ const Inventory = ({ address, istPurse, itemsPurse }: InventoryProps) => (
             istPurse.displayInfo.decimalPlaces,
           )}
         </div>
-        <div>
+        {/* <div>
           <b>Items:</b>
           {itemsPurse ? (
             <ul style={{ marginTop: 0, textAlign: 'left' }}>
@@ -40,7 +40,7 @@ const Inventory = ({ address, istPurse, itemsPurse }: InventoryProps) => (
           ) : (
             'None'
           )}
-        </div>
+        </div> */}
       </div>
     </div>
   </div>

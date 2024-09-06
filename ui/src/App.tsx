@@ -14,11 +14,13 @@ import { subscribeLatest } from '@agoric/notifier';
 import { makeCopyBag } from '@agoric/store';
 import { Logos } from './components/Logos';
 import { Inventory } from './components/Inventory';
-import { Trade } from './components/Trade';
+import { Subscribe } from './components/Trade';
+
+import { AmountMath } from '@agoric/ertp';
 
 const { entries, fromEntries } = Object;
 
-type Wallet = Awaited<ReturnType<typeof makeAgoricWalletConnection>>;
+export type Wallet = Awaited<ReturnType<typeof makeAgoricWalletConnection>>;
 
 const ENDPOINTS = {
   RPC: 'http://localhost:26657',
@@ -86,15 +88,38 @@ const connectWallet = async () => {
   }
 };
 
-const makeOffer = (giveValue: bigint, wantChoices: Record<string, bigint>) => {
+// const watchUpdates = async () => {
+//   const { wallet, offerUpInstance, brands } = useAppStore.getState();
+//   const iterator = subscribeLatest(wallet?.walletUpdatesNotifier);
+//   for await (const update of iterator) {
+//     console.log("MUNEEB", update)
+//     // numWantsSatisfied can either be 1 or 0 until "multiples" are
+//     // supported.
+//     //
+//     // https://github.com/Agoric/agoric-sdk/blob/1b5e57f17a043a43171621bbe3ef68131954f714/packages/zoe/src/zoeService/types.js#L213
+//     if (update.status.numWantsSatisfied > 0) {
+//       console.log('Offer accepted', update);
+//       return;
+//     }
+//   }
+// };
+
+const makeOffer = async (giveValue: bigint, wantChoice: string, offerType: string, watchUpdates: Function) => {
   const { wallet, offerUpInstance, brands } = useAppStore.getState();
   if (!offerUpInstance) throw Error('no contract instance');
   if (!(brands && brands.IST && brands.Item))
     throw Error('brands not available');
 
-  const value = makeCopyBag(entries(wantChoices));
-  const want = { Items: { brand: brands.Item, value } };
-  const give = { Price: { brand: brands.IST, value: giveValue } };
+  const choiceBag = makeCopyBag([
+    [{ serviceStarted: '123', serviceType: wantChoice }, 1n],
+  ]);
+
+  // want: { Items: AmountMath.make(brands.Item, choiceBag) }
+
+  // const value = makeCopyBag(entries(wantChoices));
+  const want = { Items: AmountMath.make(brands.Item, choiceBag) };
+  const give = { Price: AmountMath.make(brands.IST, 10000000n) };
+
 
   wallet?.makeOffer(
     {
@@ -103,8 +128,14 @@ const makeOffer = (giveValue: bigint, wantChoices: Record<string, bigint>) => {
       publicInvitationMaker: 'makeTradeInvitation',
     },
     { give, want },
-    undefined,
+    {
+      userAddress: wallet.address,
+      serviceType: wantChoice,
+      offerType: offerType,
+    },
     (update: { status: string; data?: unknown }) => {
+      if (offerType === 'BUY_SUBSCRIPTION') {
+      
       if (update.status === 'error') {
         alert(`Offer error: ${update.data}`);
       }
@@ -114,8 +145,10 @@ const makeOffer = (giveValue: bigint, wantChoices: Record<string, bigint>) => {
       if (update.status === 'refunded') {
         alert('Offer rejected');
       }
-    },
+    }
+  }
   );
+  watchUpdates(wallet, offerType, wantChoice);
 };
 
 function App() {
@@ -145,10 +178,10 @@ function App() {
   return (
     <>
       <Logos />
-      <h1>Items Listed on Offer Up</h1>
+      <h1>All-in-One Subscription Service</h1>
 
       <div className="card">
-        <Trade
+        <Subscribe
           makeOffer={makeOffer}
           istPurse={istPurse as Purse}
           walletConnected={!!wallet}
@@ -159,6 +192,7 @@ function App() {
             address={wallet.address}
             istPurse={istPurse}
             itemsPurse={itemsPurse as Purse}
+            
           />
         ) : (
           <button onClick={tryConnectWallet}>Connect Wallet</button>
