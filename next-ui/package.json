@@ -1,0 +1,53 @@
+{
+  "name": "dapp-offer-ui-nextjs",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint && eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "lint:fix": "yarn lint --fix"
+  },
+  "dependencies": {
+    "next": "^14.1.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "ses": "^1.3.0"
+  },
+  "devDependencies": {
+    "@agoric/eventual-send": "^0.14.1",
+    "@agoric/notifier": "^0.6.2",
+    "@agoric/rpc": "0.9.1-dev-f471a83.0",
+    "@agoric/store": "^0.9.2",
+    "@agoric/ui-components": "^0.9.0",
+    "@agoric/web-components": "^0.15.0",
+    "@next/eslint-plugin-next": "^14.1.2",
+    "@testing-library/react": "^14.1.2",
+    "@types/react": "^18.2.15",
+    "@types/react-dom": "^18.2.7",
+    "@typescript-eslint/eslint-plugin": "^7.1.1",
+    "@typescript-eslint/parser": "^7.1.1",
+    "eslint": "^8.45.0",
+    "eslint-config-next": "14.1.2",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.1.3",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-refresh": "^0.4.3",
+    "happy-dom": "^13.3.1",
+    "prettier": "^3.2.4",
+    "puppeteer": "^21.9.0",
+    "typescript": "^5.0.2",
+    "zustand": "^4.5.2"
+  },
+  "resolutions": {
+    "**/ses": "^0.18.8",
+    "**/@agoric/xsnap": "0.14.3-dev-9f085d3.0"
+  },
+  "prettier": {
+    "trailingComma": "all",
+    "arrowParens": "avoid",
+    "singleQuote": true
+  }
+}
