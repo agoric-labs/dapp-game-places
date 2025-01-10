@@ -46,7 +46,10 @@
     "make:help": "make -C contract list",
     "start:contract": "cd contract && yarn start",
     "start:ui": "cd ui && yarn dev",
-    "lint": "yarn workspaces foreach --all run lint",
+    "format": "yarn prettier --write .github contract ui",
+    "lint:format": "yarn prettier --check .github contract ui",
+    "lint": "yarn lint:format && yarn workspaces foreach --all run lint",
+    "lint:fix": "yarn format && yarn workspaces foreach --all run lint:fix",
     "test": "yarn workspaces foreach --all run test",
     "test:e2e": "yarn workspace offer-up-ui test:e2e",
     "build": "yarn workspaces foreach --all run build",
@@ -62,6 +65,16 @@
     "eslint-plugin-cypress": "^2.15.1",
     "eslint-plugin-testing-library": "^6.2.0",
     "eslint-plugin-ui-testing": "^2.0.1",
+    "prettier": "^3.3.3",
+    "prettier-plugin-tailwindcss": "^0.5.11",
     "serve": "^14.2.1"
+  },
+  "prettier": {
+    "trailingComma": "all",
+    "arrowParens": "avoid",
+    "singleQuote": true,
+    "plugins": [
+      "prettier-plugin-tailwindcss"
+    ]
   }
 }

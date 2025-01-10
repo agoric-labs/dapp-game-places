@@ -99,11 +99,11 @@ input {
 }
 
 .error {
-  background-color: #E11D48;
+  background-color: #e11d48;
   color: #fff;
 }
 
 /* increment/decrement arrows always visible */
-input[type=number]::-webkit-inner-spin-button {
-  opacity: 1
+input[type='number']::-webkit-inner-spin-button {
+  opacity: 1;
 }

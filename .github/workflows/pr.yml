@@ -32,7 +32,7 @@ jobs:
       - name: Use Node.js 18
         uses: actions/setup-node@v4
         with:
-          node-version: "18.18"
+          node-version: '18.18'
       - run: corepack enable
       - run: yarn install
       - name: yarn start:docker
@@ -60,12 +60,12 @@ jobs:
         with:
           start: npx serve ui/dist -p 5173
           command: yarn test:e2e
-          wait-on: "http://localhost:5173"
+          wait-on: 'http://localhost:5173'
           wait-on-timeout: 120
           browser: chrome
         env:
           DISPLAY: :0.0
-          SECRET_WORDS: "orbit bench unit task food shock brand bracket domain regular warfare company announce wheel grape trust sphere boy doctor half guard ritual three ecology"
+          SECRET_WORDS: 'orbit bench unit task food shock brand bracket domain regular warfare company announce wheel grape trust sphere boy doctor half guard ritual three ecology'
 
       - name: Archive e2e artifacts
         uses: actions/upload-artifact@v4
