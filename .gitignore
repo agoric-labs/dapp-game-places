@@ -37,6 +37,5 @@ videos
 !.yarn/sdks
 !.yarn/versions
 
-# contract tx
 contract/,tx.json
 contract/start-offer-up-plan.json

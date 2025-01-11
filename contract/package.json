@@ -44,12 +44,15 @@
     "typescript-eslint": "^7.2.0"
   },
   "dependencies": {
-    "@agoric/ertp": "^0.16.3-u16.1",
-    "@agoric/vats": "dev",
-    "@agoric/zoe": "^0.26.3-u16.1",
-    "@endo/far": "^1.1.5",
-    "@endo/marshal": "^1.5.3",
-    "@endo/patterns": "^1.4.3"
+    "@agoric/ertp": "^0.16.3-u18.0",
+    "@agoric/internal": "^0.4.0-u18.0",
+    "@agoric/vat-data": "0.5.3-u18.1",
+    "@agoric/vats": "^0.16.0-u18.0",
+    "@agoric/zoe": "^0.26.3-u18.0",
+    "@agoric/zone": "^0.3.0-u18.1",
+    "@endo/far": "^1.1.8",
+    "@endo/marshal": "^1.6.1",
+    "@endo/patterns": "^1.4.6"
   },
   "ava": {
     "files": [

@@ -19,18 +19,20 @@
  */
 // @ts-check
 
-import { Far } from '@endo/far';
+// import { Far } from '@endo/far';
 import { M, getCopyBagEntries } from '@endo/patterns';
 import { AssetKind } from '@agoric/ertp/src/amountMath.js';
 import { AmountShape } from '@agoric/ertp/src/typeGuards.js';
 import { atomicRearrange } from '@agoric/zoe/src/contractSupport/atomicTransfer.js';
 import '@agoric/zoe/exported.js';
+import { makeDurableZone } from '@agoric/zone/durable.js';
 
 /**
  * @import {Amount} from '@agoric/ertp/src/types.js';
  * @import {CopyBag} from '@endo/patterns';
  *
  */
+
 const { Fail, quote: q } = assert;
 
 // #region bag utilities
@@ -75,9 +77,12 @@ harden(customTermsShape);
  *   - handles offers to buy up to `maxItems` items at a time.
  *
  * @param {ZCF<OfferUpTerms>} zcf
+ * @param {*} _privateArgs
+ * @param {import('@agoric/vat-data').Baggage} baggage
  */
-export const start = async zcf => {
+export const start = async (zcf, _privateArgs, baggage) => {
   const { tradePrice, maxItems = 3n } = zcf.getTerms();
+  const zone = makeDurableZone(baggage);
 
   /**
    * a new ERTP mint for items, accessed thru the Zoe Contract Facet.
@@ -129,19 +134,23 @@ export const start = async zcf => {
     return 'trade complete';
   };
 
-  /**
-   * Make an invitation to trade for items.
-   *
-   * Proposal Keywords used in offers using these invitations:
-   *   - give: `Price`
-   *   - want: `Items`
-   */
-  const makeTradeInvitation = () =>
-    zcf.makeInvitation(tradeHandler, 'buy items', undefined, proposalShape);
-
-  // Mark the publicFacet Far, i.e. reachable from outside the contract
-  const publicFacet = Far('Items Public Facet', {
-    makeTradeInvitation,
+  // Use zone.exo to make a publicFacet suitable for use by remote callers.
+  const publicFacet = zone.exo('Items Public Facet', undefined, {
+    /**
+     * Make an invitation to trade for items.
+     *
+     * Proposal Keywords used in offers using these invitations:
+     *   - give: `Price`
+     *   - want: `Items`
+     */
+    makeTradeInvitation() {
+      return zcf.makeInvitation(
+        tradeHandler,
+        'buy items',
+        undefined,
+        proposalShape,
+      );
+    },
   });
   return harden({ publicFacet });
 };
