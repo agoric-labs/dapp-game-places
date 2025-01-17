@@ -6,5 +6,7 @@
 # wait for blocks to start being produced
 waitForBlock 1
 
+make -C /ws-offerup/contract mint100
+
 # bring back chain process to foreground
 wait

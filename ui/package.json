@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "export VITE_HOSTNAME=$CODESPACE_NAME && export VITE_GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN=$GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN && vite",
+    "dev": "VITE_HOSTNAME=${CODESPACE_NAME:-} VITE_GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN=${GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN:-} vite",
     "build": "tsc && vite build",
     "test": "vitest spec",
     "test:e2e": "SKIP_EXTENSION_SETUP=true EXTENSION=keplr synpress run --configFile=test/e2e/synpress.config.cjs",

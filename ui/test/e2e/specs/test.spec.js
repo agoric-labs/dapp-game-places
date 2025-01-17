@@ -4,8 +4,8 @@ describe('DAPP Offer Up E2E Test Cases', () => {
   context('Test commands', () => {
     it(`should complete Keplr setup by  importing an existing wallet using 24 word phrase`, () => {
       cy.setupWallet({
-        secretWords:
-          'tackle hen gap lady bike explain erode midnight marriage wide upset culture model select dial trial swim wood step scan intact what card symptom',
+        privateKey:
+          '57ecd5ca73bb97c71ae2c356346b4b615d4e52fb34081fe656e5f6942ca8e56d',
         password: 'Test1234',
         newAccount: true,
         walletName: 'My Wallet 2',

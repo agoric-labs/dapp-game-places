@@ -39,3 +39,4 @@ videos
 
 # contract tx
 contract/,tx.json
+contract/start-offer-up-plan.json

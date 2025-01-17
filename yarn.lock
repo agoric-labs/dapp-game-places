@@ -944,9 +944,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@agoric/synpress@npm:^3.8.1":
-  version: 3.8.1
-  resolution: "@agoric/synpress@npm:3.8.1"
+"@agoric/synpress@npm:^3.8.4-beta.0":
+  version: 3.8.4-beta.0
+  resolution: "@agoric/synpress@npm:3.8.4-beta.0"
   dependencies:
     "@cypress/code-coverage": "npm:^3.11.0"
     "@cypress/webpack-dev-server": "npm:^3.5.2"
@@ -983,7 +983,7 @@ __metadata:
     wait-on: "npm:^7.0.1"
   bin:
     synpress: synpress.js
-  checksum: 10c0/d404295156fbe96ea45e41d4e9900bcc19c0bd813f87e384125c45ef30527d4083138ae7dbc7b4104788ba9f5a5886388563c28b9dd8b233f06b68379fb54fd4
+  checksum: 10c0/6261510d1ee63c3086adfbcf5abe54acc02b6549819f2f2edf6139763df31c50e216be36dd05f20fd8a9681298ca1ca1135c1e569d75be455f7448ed99884959
   languageName: node
   linkType: hard
 
@@ -12753,7 +12753,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "offer-up@workspace:."
   dependencies:
-    "@agoric/synpress": "npm:^3.8.1"
+    "@agoric/synpress": "npm:^3.8.4-beta.0"
     eslint: "npm:^8.57.0"
     eslint-config-turbo: "npm:^1.13.0"
     eslint-plugin-chai-friendly: "npm:^0.7.4"
