@@ -18,7 +18,7 @@
           "onAutoForward": "silent"
       }
 	},
-	"postStartCommand": "/bin/bash /workspaces/dapp-offer-up/make_ports_public.sh 26657 1317",
+	"postStartCommand": "/bin/bash /ws-offerups/dapp-offer-up/make_ports_public.sh 26657 1317",
 	"features": {
 		"ghcr.io/devcontainers/features/docker-in-docker:2": {},
 		"ghcr.io/devcontainers/features/github-cli:1": {}

@@ -1,7 +1,7 @@
 #!/bin/bash
 set -xueo pipefail
 
-cd /workspace/contract
+cd /ws-offerup/contract
 
 SCRIPT=start-offer-up.js
 PERMIT=start-offer-up-permit.json
