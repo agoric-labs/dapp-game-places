@@ -39,10 +39,11 @@
     "@babel/highlight": "7.22.5"
   },
   "scripts": {
-    "start:docker": "cd contract && docker compose up -d",
-    "docker:logs": "cd contract; docker compose logs --tail 200 -f",
-    "docker:bash": "cd contract; docker compose exec agd bash",
-    "docker:make": "cd contract; docker compose exec agd make -C /workspace/contract",
+    "start:docker": "./contract/scripts/start_chain.sh",
+    "stop:docker": "cd contract && docker stop agdc && docker rm agdc",
+    "docker:logs": "cd contract && docker logs -f --tail 200 agdc",
+    "docker:bash": "cd contract && docker exec -it agdc bash",
+    "docker:make": "cd contract && docker exec agdc make ",
     "make:help": "make -C contract list",
     "start:contract": "cd contract && yarn start",
     "start:ui": "cd ui && yarn dev",

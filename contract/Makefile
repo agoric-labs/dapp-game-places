@@ -64,7 +64,7 @@ instance-q:
 SCRIPT=start-offer-up.js
 PERMIT=start-offer-up-permit.json
 start-contract: $(SCRIPT) $(PERMIT) install-bundles
-	scripts/propose-start-contract.sh
+	./scripts/propose-start-contract.sh
 
 install-bundles: bundles/bundle-list
 	./scripts/install-bundles.sh
